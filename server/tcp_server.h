@@ -20,7 +20,6 @@ public:
 	{
 		if (!ec)
 		{
-			std::cout << "heja";
 			connection->start();
 		}
 		start_accept();
