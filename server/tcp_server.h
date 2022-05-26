@@ -20,7 +20,7 @@ public:
 	{
 		if (!ec)
 		{
-			std::cout << "dsfsvvvvvvvvvvv";
+			std::cout << "hejka";
 			connection->start();
 		}
 		start_accept();
