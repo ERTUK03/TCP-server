@@ -6,20 +6,38 @@
 #include <vector>
 #include <iostream>
 
+#define READ(function) {\
+	socket.async_read_some(boost::asio::buffer(buffer.data(), buffer.size()),\
+	boost::bind(function, shared_from_this(),\
+	boost::asio::placeholders::error,\
+	boost::asio::placeholders::bytes_transferred));\
+}
+
 class connection : public boost::enable_shared_from_this<connection>
 {
 public:
-	std::vector<char> buffer;
-	typedef boost::shared_ptr<connection> pointer;
 	boost::asio::ip::tcp::socket socket;
+	typedef boost::shared_ptr<connection> pointer;
 
-	std::string str;
+	std::string hostname = "";
+	std::vector<char> buffer;
 
-	connection(boost::asio::io_context& context) : socket{ context }, buffer{ std::vector<char>(1024) } {}
+	std::vector<std::string> &clients;
 
-	static pointer create(boost::asio::io_context& context)
+	connection(boost::asio::io_context& context, std::vector<std::string> &vec) : socket{ context }, buffer{ std::vector<char>(1024) }, clients{vec} {}
+	
+	~connection()
 	{
-		return pointer(new connection(context));
+		if (find(clients.begin(), clients.end(), hostname) != clients.end())
+		{
+			std::cout << "Client " << hostname << " disconnected\n";
+			clients.erase(std::remove(clients.begin(), clients.end(), hostname), clients.end());
+		}
+	}
+
+	static pointer create(boost::asio::io_context& context, std::vector<std::string> &vec)
+	{
+		return pointer(new connection(context, vec));
 	}
 
 	boost::asio::ip::tcp::socket& return_socket()
@@ -29,32 +47,34 @@ public:
 
 	void start()
 	{
-		socket.async_read_some(boost::asio::buffer(buffer, 1024),
-			boost::bind(&connection::handle_read, shared_from_this(),
-				boost::asio::placeholders::error,
-				boost::asio::placeholders::bytes_transferred));
-		socket.async_write_some(boost::asio::buffer("Welcome\n"),
-								boost::bind(&connection::handle_write, shared_from_this(),
-								boost::asio::placeholders::error,
-								boost::asio::placeholders::bytes_transferred));
+		READ(&connection::getHostname);
 	}
 
-	void handle_write(const boost::system::error_code, std::size_t)
+	void getHostname(const boost::system::error_code& ec, std::size_t size)
 	{
-		std::cin >> str;
-		socket.async_write_some(boost::asio::buffer(str),
-			boost::bind(&connection::handle_write, shared_from_this(),
-			boost::asio::placeholders::error,
-			boost::asio::placeholders::bytes_transferred));
+		if (!ec)
+		{
+			hostname = std::string(buffer.begin(), buffer.end());
+			if (find(clients.begin(), clients.end(), hostname) == clients.end())
+			{
+				clients.push_back(hostname);
+				std::cout << hostname << " connected\n";
+				READ(&connection::handle_read);
+			}
+			else {
+				std::cout<<"Failed attempt to connect\n";
+			}
+		}
 	}
 
-	void handle_read(boost::system::error_code, std::size_t)
+	void handle_read(const boost::system::error_code& ec, std::size_t size)
 	{
-		for (auto ch : buffer)	std::cout << ch;
-		socket.async_read_some(boost::asio::buffer(buffer, 1024),
-							   boost::bind(&connection::handle_read, shared_from_this(),
-							   boost::asio::placeholders::error,
-							   boost::asio::placeholders::bytes_transferred));
+		if (!ec)
+		{
+			std::cout << hostname << ": ";
+			for (int i = 0; i < size; i++)	std::cout << buffer[i];
+			std::cout << "\n";
+			READ(&connection::handle_read);
+		}
 	}
 };
-
