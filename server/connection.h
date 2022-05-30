@@ -6,7 +6,7 @@
 #include <vector>
 #include <iostream>
 
-#define READ(function) {\ 
+#define READ(function) {\
 	socket.async_read_some(boost::asio::buffer(buffer.data(), buffer.size()),\
 	boost::bind(function, shared_from_this(),\
 	boost::asio::placeholders::error,\
@@ -22,24 +22,22 @@ public:
 	std::string hostname = "";
 	std::vector<char> buffer;
 
-	std::vector<std::string> &clients;
+	static std::vector<std::string> client;
 
-	connection(boost::asio::io_context& context, std::vector<std::string>& vec) : socket{ context }, buffer{ std::vector<char>(1024) }, clients{ vec }
-	{
-	}
+	connection(boost::asio::io_context& context) : socket{ context }, buffer{ std::vector<char>(1024) } {}
 	
 	~connection()
 	{
-		if (find(clients.begin(), clients.end(), hostname) != clients.end())
+		if (hostname != "")
 		{
 			std::cout << "Client " << hostname << " disconnected\n";
-			clients.erase(std::remove(clients.begin(), clients.end(), hostname), clients.end());
+			client.erase(std::remove(client.begin(), client.end(), hostname), client.end());
 		}
 	}
 
-	static pointer create(boost::asio::io_context& context, std::vector<std::string>& vec)
+	static pointer create(boost::asio::io_context& context)
 	{
-		return pointer(new connection(context, vec));
+		return pointer(new connection(context));
 	}
 
 	boost::asio::ip::tcp::socket& return_socket()
@@ -57,14 +55,15 @@ public:
 		if (!ec)
 		{
 			hostname = std::string(buffer.begin(), buffer.end());
-			if (find(clients.begin(), clients.end(), hostname) == clients.end())
+			if (find(client.begin(), client.end(), hostname) == client.end())
 			{
-				clients.push_back(hostname);
+				client.push_back(hostname);
 				std::cout << hostname << " connected\n";
 				READ(&connection::handle_read);
 			}
 			else {
 				std::cout << "Failed attempt to connect\n";
+				hostname = "";
 			}
 		}
 	}
