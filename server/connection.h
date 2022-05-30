@@ -6,7 +6,7 @@
 #include <vector>
 #include <iostream>
 
-#define READ(function) {\
+#define READ(function) {\ 
 	socket.async_read_some(boost::asio::buffer(buffer.data(), buffer.size()),\
 	boost::bind(function, shared_from_this(),\
 	boost::asio::placeholders::error,\
