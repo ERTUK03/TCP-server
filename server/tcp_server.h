@@ -1,5 +1,5 @@
 #pragma once
-#include "connection.h"
+#include "connection.cpp"
 
 class tcp_server
 {
@@ -29,4 +29,3 @@ public:
 	boost::asio::io_context& context;
 	boost::asio::ip::tcp::acceptor acceptor;
 };
-

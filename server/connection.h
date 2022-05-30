@@ -24,7 +24,9 @@ public:
 
 	std::vector<std::string> &clients;
 
-	connection(boost::asio::io_context& context, std::vector<std::string> &vec) : socket{ context }, buffer{ std::vector<char>(1024) }, clients{vec} {}
+	connection(boost::asio::io_context& context, std::vector<std::string>& vec) : socket{ context }, buffer{ std::vector<char>(1024) }, clients{ vec }
+	{
+	}
 	
 	~connection()
 	{
@@ -35,7 +37,7 @@ public:
 		}
 	}
 
-	static pointer create(boost::asio::io_context& context, std::vector<std::string> &vec)
+	static pointer create(boost::asio::io_context& context, std::vector<std::string>& vec)
 	{
 		return pointer(new connection(context, vec));
 	}
@@ -62,7 +64,7 @@ public:
 				READ(&connection::handle_read);
 			}
 			else {
-				std::cout<<"Failed attempt to connect\n";
+				std::cout << "Failed attempt to connect\n";
 			}
 		}
 	}
@@ -72,7 +74,10 @@ public:
 		if (!ec)
 		{
 			std::cout << hostname << ": ";
-			for (int i = 0; i < size; i++)	std::cout << buffer[i];
+			for (int i = 0; i < size; i++)
+			{
+				std::cout << buffer[i];
+			}
 			std::cout << "\n";
 			READ(&connection::handle_read);
 		}
