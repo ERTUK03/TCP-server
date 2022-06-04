@@ -1,10 +1,10 @@
 #pragma once
-#include <boost/asio.hpp>
 #include <boost/bind/bind.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/enable_shared_from_this.hpp>
 #include <vector>
 #include <iostream>
+#include "command.h"
 
 #define READ(function) {\
 	socket.async_read_some(boost::asio::buffer(buffer.data(), buffer.size()),\
@@ -24,8 +24,10 @@ public:
 
 	static std::vector<std::string> client;
 
-	connection(boost::asio::io_context& context) : socket{ context }, buffer{ std::vector<char>(1024) } {}
-	
+	command input;
+
+	connection(boost::asio::io_context& context) : socket{ context }, buffer{ std::vector<char>(1024) }, input{ socket } {}
+
 	~connection()
 	{
 		if (hostname != "")
@@ -48,6 +50,8 @@ public:
 	void start()
 	{
 		READ(&connection::getHostname);
+		std::string str = "Enter your username: ";
+		socket.write_some(boost::asio::buffer(str.data(), str.size()));
 	}
 
 	void getHostname(const boost::system::error_code& ec, std::size_t size)
@@ -60,9 +64,12 @@ public:
 				client.push_back(hostname);
 				std::cout << hostname << " connected\n";
 				READ(&connection::handle_read);
+				socket.write_some(boost::asio::buffer(std::string("Successfully connected").data(), std::string("Successfully connected").size()));
 			}
-			else {
+			else
+			{
 				std::cout << "Failed attempt to connect\n";
+				socket.write_some(boost::asio::buffer(std::string("Failed attempt to connect").data(), std::string("Failed attempt to connect").size()));
 				hostname = "";
 			}
 		}
@@ -72,13 +79,21 @@ public:
 	{
 		if (!ec)
 		{
-			std::cout << hostname << ": ";
-			for (int i = 0; i < size; i++)
-			{
-				std::cout << buffer[i];
-			}
-			std::cout << "\n";
+			std::string message = "";
+			for (int i = 0; i < size; i++)	message += buffer[i];
+			std::cout << hostname << ": " << message << "\n";
 			READ(&connection::handle_read);
+			input.execute(message);
 		}
 	}
+
+	/*
+	void handle_write()
+	{
+		socket.async_write_some(boost::asio::buffer(buffer.data(), buffer.size()),
+				boost::bind(&connection::handle_write, shared_from_this(),
+				boost::asio::placeholders::error,
+				boost::asio::placeholders::bytes_transferred));
+	}
+	*/
 };

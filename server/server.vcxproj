@@ -143,11 +143,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="command.cpp" />
     <ClCompile Include="connection.cpp" />
     <ClCompile Include="server.cpp" />
     <ClCompile Include="tcp_server.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="command.h" />
     <ClInclude Include="connection.h" />
     <ClInclude Include="tcp_server.h" />
   </ItemGroup>
