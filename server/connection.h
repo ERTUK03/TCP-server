@@ -86,14 +86,4 @@ public:
 			input.execute(message);
 		}
 	}
-
-	/*
-	void handle_write()
-	{
-		socket.async_write_some(boost::asio::buffer(buffer.data(), buffer.size()),
-				boost::bind(&connection::handle_write, shared_from_this(),
-				boost::asio::placeholders::error,
-				boost::asio::placeholders::bytes_transferred));
-	}
-	*/
 };
