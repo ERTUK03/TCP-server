@@ -5,6 +5,7 @@
 #include <boost/asio.hpp>
 #include <fstream>
 #include <sstream>
+#include <algorithm>
 
 #define COMMAND(name) {#name, &command::##name}
 #define SEND(message) socket.write_some(boost::asio::buffer(message.data(), message.size()))
@@ -37,8 +38,6 @@ public:
 	{
 		if (words.size() == 2)
 		{
-			std::string message = "";
-			std::string line;
 			std::ifstream file("shared/" + words[1], std::ios::in | std::ios::binary);
 			if (!file)
 			{
@@ -46,35 +45,30 @@ public:
 			}
 			else
 			{
-				while (file >> line)
+				char* buffer = new char[(16*1024)-1];
+				int length;
+				for (;;) 
 				{
-					message += line;
+					file.read(buffer, (16*1024)-1);
+					length = file.gcount();
+					std::string message;
+					if (file.eof()) message = "Y";
+					else message = "N";
+					for (int i = 0; i < length; i++)
+					{
+						message += buffer[i];
+						std::cout << buffer[i];
+					}
+					SEND(message);
+					if (file.eof()) break;
 				}
-				SEND(message);
+				delete[] buffer;
 			}
+			file.close();
 		}
 		else
 		{
 			SEND(std::string("Wrong syntax"));
-		}
-	}
-
-	void getFileHandle(std::string filename)
-	{
-		std::string message = "";
-		std::string line;
-		std::ifstream file("shared/" + filename, std::ios::in | std::ios::binary);
-		if (!file)
-		{
-			SEND(std::string("An error occured while opening the file"));
-		}
-		else
-		{
-			while (file >> line)
-			{
-				message += line;
-			}
-			SEND(message);
 		}
 	}
 
