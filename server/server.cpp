@@ -23,10 +23,28 @@ int getPort()
 int main()
 {
 	boost::asio::io_context context;
-	std::string address = getAddress();
-	int port = getPort();
+	std::string address;
+	int port;
+	try
+	{
+		address = getAddress();
+		port = getPort();
+	}
+	catch (...)
+	{
+		std::cout << "Wrong input.";
+		return 0;
+	}
 	std::cout << "Your address: " << address << "\n";
 	std::cout << "Port: " << port << "\n";
-	tcp_server server(address, port, context);
+	try
+	{
+		tcp_server server(address, port, context);
+	}
+	catch (...)
+	{
+		std::cout << "Wrong address";
+		return 0;
+	}
 	context.run();
 }
