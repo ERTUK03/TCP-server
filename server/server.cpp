@@ -11,13 +11,12 @@ std::string getAddress()
 	return address;
 }
 
-int getPort()
+std::string getPort()
 {
 	std::string port;
-	int res;
 	std::cout << "Enter your port: ";
 	std::getline(std::cin, port);
-	return stoi(port);
+	return port;
 }
 
 int main()
@@ -28,23 +27,14 @@ int main()
 	try
 	{
 		address = getAddress();
-		port = getPort();
-	}
-	catch (...)
-	{
-		std::cout << "Wrong input.";
-		return 0;
-	}
-	std::cout << "Your address: " << address << "\n";
-	std::cout << "Port: " << port << "\n";
-	try
-	{
+		port = stoi(getPort());
+		std::cout << "Your address: " << address << "\n";
+		std::cout << "Port: " << port << "\n";
 		tcp_server server(address, port, context);
+		context.run();
 	}
 	catch (...)
 	{
-		std::cout << "Wrong address";
-		return 0;
+		std::cout << "Wrong settings";
 	}
-	context.run();
 }
