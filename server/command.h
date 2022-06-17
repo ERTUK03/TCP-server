@@ -14,10 +14,10 @@ class command
 {
 public:
 	std::vector<std::string> words;
-
+	std::vector<std::string>& clients;
 	boost::asio::ip::tcp::socket& socket;
 
-	command(boost::asio::ip::tcp::socket& sock) : socket{sock} {}
+	command(boost::asio::ip::tcp::socket& sock, std::vector<std::string>& client) : socket{ sock }, clients{ client } {}
 
 	~command() {}
 
@@ -36,40 +36,35 @@ public:
 
 	void getFile()
 	{
-		if (words.size() == 2)
-		{
-			std::ifstream file("shared/" + words[1], std::ios::in | std::ios::binary);
-			if (!file)
-			{
-				SEND(std::string("An error occured while opening the file"));
-			}
-			else
-			{
-				char* buffer = new char[(16*1024)-1];
-				int length;
-				for (;;) 
-				{
-					file.read(buffer, (16*1024)-1);
-					length = file.gcount();
-					std::string message;
-					if (file.eof()) message = "Y";
-					else message = "N";
-					for (int i = 0; i < length; i++)
-					{
-						message += buffer[i];
-						std::cout << buffer[i];
-					}
-					SEND(message);
-					if (file.eof()) break;
-				}
-				delete[] buffer;
-			}
-			file.close();
-		}
-		else
+		if (words.size() != 2)
 		{
 			SEND(std::string("Wrong syntax"));
+			return;
 		}
+
+		std::ifstream file("shared/" + words[1], std::ios::in | std::ios::binary);
+		if (!file)	SEND(std::string("An error occured while opening the file"));
+		else
+		{
+			char* buffer = new char[(4*1024)-1];
+			int length;
+			for (;;) 
+			{
+				file.read(buffer, (16*1024)-1);
+				length = file.gcount();
+				std::string packet;
+				if (file.eof()) packet = "Y";
+				else packet = "N";
+				for (int i = 0; i < length; i++)
+				{
+					packet += buffer[i];
+				}
+				SEND(packet);
+				if (file.eof()) break;
+			}
+			delete[] buffer;
+		}
+		file.close();
 	}
 
 	void help()
@@ -81,13 +76,30 @@ public:
 			{
 				sendMessage += commands[i].name + '\n';
 			}
-			sendMessage.pop_back();
 			SEND(sendMessage);
 		}
 		else
 		{
-			SEND(std::string("Wrong syntax"));
+			SEND(std::string("Wrong syntax\n"));
 		}
+	}
+
+	void getUsers()
+	{
+		if (words.size() == 1)
+		{
+			std::string sendMessage = "";
+			for (int i = 0;i<clients.size(); i++)
+			{
+				sendMessage += clients[i] + '\n';
+			}
+			SEND(sendMessage);
+		}
+		else
+		{
+			SEND(std::string("Wrong syntax\n"));
+		}
+
 	}
 
 	struct
@@ -96,11 +108,12 @@ public:
 		void (command::* function) (void);
 	}
 
-	commands[3] =
+	commands[4] =
 	{
-		COMMAND(quit),
 		COMMAND(getFile),
-		COMMAND(help)
+		COMMAND(getUsers),
+		COMMAND(help),
+		COMMAND(quit)
 	};
 
 	void execute(std::string receiveMessage)
@@ -109,6 +122,11 @@ public:
 		words.clear();
 		std::stringstream ss(receiveMessage);
 		while (ss >> word)	words.push_back(word);
+		if (words.size() == 0)
+		{
+			SEND(std::string("Unknown command. Try again\n"));
+			return;
+		}
 		for (int i = 0; i < sizeof(commands)/sizeof(commands[0]); i++)
 		{
 			if (commands[i].name == words[0])
@@ -117,6 +135,6 @@ public:
 				return;
 			}
 		}
-		SEND(std::string("Unknown command. Try again"));
+		SEND(std::string("Unknown command. Try again\n"));
 	}
 };
