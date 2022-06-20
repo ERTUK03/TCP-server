@@ -6,6 +6,7 @@
 #include <fstream>
 #include <sstream>
 #include <algorithm>
+#include <filesystem>
 
 #define COMMAND(name) {#name, &command::##name}
 #define SEND(message) socket.write_some(boost::asio::buffer(message.data(), message.size()))
@@ -23,6 +24,7 @@ public:
 	void getFile();
 	void help();
 	void getUsers();
+	void getFiles();
 
 	struct
 	{
@@ -30,12 +32,13 @@ public:
 		void (command::* function) (void);
 	}
 
-	commands[4] =
+	commands[5] =
 	{
 		COMMAND(getFile),
 		COMMAND(getUsers),
 		COMMAND(help),
-		COMMAND(quit)
+		COMMAND(quit),
+		COMMAND(getFiles)
 	};
 
 	void execute(std::string receiveMessage);

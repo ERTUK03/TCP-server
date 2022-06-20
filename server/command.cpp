@@ -63,6 +63,27 @@ void command::getUsers()
 	else SEND(std::string("Wrong syntax\n"));
 }
 
+void command::getFiles()
+{
+	if (words.size() == 1)
+	{
+		std::string sendMessage = "";
+		for (const auto& file : std::filesystem::directory_iterator("shared/"))
+		{
+			std::string name = "";
+			for (auto ch : file.path().u8string())
+			{
+				name += ch;
+				if (ch == '/')	name = "";
+			}
+			sendMessage += name + '\n';
+		}
+		SEND(sendMessage);
+	}
+	else SEND(std::string("Wrong syntax\n"));
+}
+
+
 void command::execute(std::string receiveMessage)
 {
 	std::string word;
