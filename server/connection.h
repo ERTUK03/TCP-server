@@ -27,9 +27,11 @@ public:
 	connection(boost::asio::io_context& context);
 	~connection();
 
-	static pointer create(boost::asio::io_context& context) { return pointer(new connection(context)); }
 	boost::asio::ip::tcp::socket& return_socket();
-	void getHostname(const boost::system::error_code& ec, std::size_t size);
+	static pointer create(boost::asio::io_context& context) { return pointer(new connection(context)); }
 	void start();
+
+private:
+	void getHostname(const boost::system::error_code& ec, std::size_t size);
 	inline void handle_read(const boost::system::error_code& ec, std::size_t size);
 };

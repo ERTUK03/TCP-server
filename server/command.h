@@ -20,6 +20,9 @@ public:
 
 	command(boost::asio::ip::tcp::socket& sock, std::vector<std::string>& client);
 
+	void execute(std::string receiveMessage);
+
+private:
 	void quit();
 	void getFile();
 	void help();
@@ -40,6 +43,4 @@ public:
 		COMMAND(quit),
 		COMMAND(getFiles)
 	};
-
-	void execute(std::string receiveMessage);
 };
