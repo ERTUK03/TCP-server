@@ -17,7 +17,7 @@ accept another client if specified hostname is already in use.
 # Commands supported
 1. getUsers - Shows client a list of server clients
 
-2. getFile - Send client the file specified in command. SYNTAX getFile [filename.extension]
+2. getFile - Sends client the file specified in command. SYNTAX getFile [filename.extension]
 
 3. getFiles - Shows client a list of files in shared folder
 
