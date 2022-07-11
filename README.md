@@ -5,7 +5,7 @@ Just a basic tcp server with couple commands, made with boost::asio.
 # Requirements
 -C++17
 
--Boost
+-Boost/asio
 
 # Description
 It's made to work with a client I made https://github.com/ERTUK03/client. Although it's possible to interact with it using just telnet
